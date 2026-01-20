@@ -14,6 +14,7 @@ export default function Terminal() {
   const socketRef = useRef<Socket | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [srAnnouncement, setSrAnnouncement] = useState('');
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -69,6 +70,7 @@ export default function Terminal() {
     socket.on('connect', () => {
       console.log('Socket.IO connected');
       setIsConnected(true);
+      setSrAnnouncement('Connected to terminal server');
       
       // Create terminal with current dimensions
       socket.emit('create-terminal', {
@@ -80,6 +82,8 @@ export default function Terminal() {
     socket.on('terminal-ready', () => {
       xterm.writeln('Terminal ready. Type commands below.');
       xterm.writeln('');
+      // WCAG2.2: Announce to screen readers
+      setSrAnnouncement('Terminal ready. Type commands below.');
     });
 
     socket.on('terminal-output', (data: string) => {
@@ -94,6 +98,7 @@ export default function Terminal() {
       console.log('Socket.IO disconnected');
       setIsConnected(false);
       xterm.writeln('\r\n\r\nDisconnected from server');
+      setSrAnnouncement('Disconnected from server');
     });
 
     // Handle user input
@@ -133,6 +138,15 @@ export default function Terminal() {
 
   return (
     <div className="terminal-container">
+      {/* WCAG2.2: ARIA live region for screen reader announcements */}
+      <div 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {srAnnouncement}
+      </div>
       <div className="terminal-header">
         <h1>AI Kanban Terminal</h1>
         <div className="connection-status">

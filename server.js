@@ -19,6 +19,9 @@ app.prepare().then(() => {
   const httpServer = createServer(expressApp);
   const io = new Server(httpServer, {
     cors: {
+      // NOTE: Wildcard origin is used for development convenience.
+      // For production, replace with specific allowed origins:
+      // origin: process.env.ALLOWED_ORIGINS?.split(',') || 'https://yourdomain.com'
       origin: '*',
       methods: ['GET', 'POST']
     }
