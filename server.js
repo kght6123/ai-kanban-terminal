@@ -6,7 +6,6 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const pty = require('node-pty');
 const os = require('os');
-const path = require('path');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
