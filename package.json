@@ -18,7 +18,6 @@
   "files": [
     "dist",
     "server.js",
-    "index.html",
     "package.json",
     "README.md"
   ],

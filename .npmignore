@@ -9,7 +9,6 @@ src
 vite.config.ts
 tsconfig.json
 tsconfig.node.json
-index.html
 
 # Development dependencies
 node_modules
