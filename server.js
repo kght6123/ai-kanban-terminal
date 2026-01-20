@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
       socket.emit('terminal-ready');
     } catch (err) {
       console.error('Failed to create terminal:', err);
-      socket.emit('terminal-error', { message: 'Failed to create terminal' });
+      socket.emit('terminal-error', { message: "Failed to create terminal" });
     }
   });
 
@@ -100,7 +100,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// SPA用フォールバック
+// Fallback to serve index.html for client-side routing
 expressApp.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'), (err) => {
     if (err) {
