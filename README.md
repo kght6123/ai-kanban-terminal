@@ -20,6 +20,8 @@ npx github:kght6123/ai-kanban-terminal
 
 ### Local Development
 
+#### Option 1: Production-like Mode (Recommended for npx)
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/kght6123/ai-kanban-terminal.git
@@ -31,17 +33,30 @@ cd ai-kanban-terminal
 npm install
 ```
 
-3. Build the frontend:
-```bash
-npm run build
-```
-
-4. Start the server:
+3. The postinstall script automatically builds the frontend. Start the server:
 ```bash
 npm start
 ```
 
-5. Open your browser and navigate to `http://localhost:3000`
+4. Open your browser and navigate to `http://localhost:3000`
+
+#### Option 2: Development Mode (Frontend Development)
+
+For frontend-only development with hot reload:
+
+1. In one terminal, start the Vite dev server:
+```bash
+npm run dev
+```
+
+2. In another terminal, start the Express server:
+```bash
+npm start
+```
+
+3. Open your browser to `http://localhost:5173` (Vite dev server)
+
+Note: In development mode, you'll need to manually connect Socket.IO to `http://localhost:3000` or update the component accordingly.
 
 ## Usage
 
@@ -72,9 +87,10 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 
 ## Scripts
 
-- `npm run dev` - Start Vite development server (frontend only)
+- `npm run dev` - Start Vite development server on port 5173 (frontend only)
 - `npm run build` - Build production bundle with Vite
-- `npm start` - Start Express server (requires built files in dist/)
+- `npm start` - Start Express server on port 3000 (serves built files from dist/)
+- `npm run preview` - Preview production build locally
 
 ## License
 
