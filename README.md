@@ -1,6 +1,6 @@
 # AI Kanban Terminal
 
-A browser-based terminal with bidirectional shell communication using Next.js, node-pty, xterm.js, and Socket.IO.
+A browser-based terminal with bidirectional shell communication using Vite, Express, node-pty, xterm.js, and Socket.IO.
 
 ## Features
 
@@ -20,6 +20,8 @@ npx github:kght6123/ai-kanban-terminal
 
 ### Local Development
 
+#### Option 1: Production-like Mode (Recommended for npx)
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/kght6123/ai-kanban-terminal.git
@@ -31,12 +33,30 @@ cd ai-kanban-terminal
 npm install
 ```
 
-3. Start the development server:
+3. The postinstall script automatically builds the frontend. Start the server:
+```bash
+npm start
+```
+
+4. Open your browser and navigate to `http://localhost:3000`
+
+#### Option 2: Development Mode (Frontend Development)
+
+For frontend-only development with hot reload:
+
+1. In one terminal, start the Vite dev server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+2. In another terminal, start the Express server:
+```bash
+npm start
+```
+
+3. Open your browser to `http://localhost:5173` (Vite dev server)
+
+Note: In development mode, you'll need to manually connect Socket.IO to `http://localhost:3000` or update the component accordingly.
 
 ## Usage
 
@@ -57,8 +77,9 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 
 ## Technology Stack
 
-- **Next.js**: React framework for the web application
-- **Express**: Custom server for HTTP requests
+- **Vite**: Fast build tool and dev server
+- **React**: UI library for the web application
+- **Express**: HTTP server for serving static files
 - **Socket.IO**: Real-time bidirectional communication
 - **node-pty**: Pseudo terminal for spawning shells
 - **xterm.js**: Terminal emulator in the browser
@@ -66,9 +87,10 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
+- `npm run dev` - Start Vite development server on port 5173 (frontend only)
+- `npm run build` - Build production bundle with Vite
+- `npm start` - Start Express server on port 3000 (serves built files from dist/)
+- `npm run preview` - Preview production build locally
 
 ## License
 
