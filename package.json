@@ -1,0 +1,41 @@
+{
+  "name": "ai-kanban-terminal",
+  "version": "1.0.0",
+  "description": "Browser-based terminal with bidirectional shell using Next.js, node-pty, xterm.js, and Socket.IO",
+  "main": "server.js",
+  "bin": {
+    "ai-kanban-terminal": "./server.js"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "terminal",
+    "xterm",
+    "node-pty",
+    "socket.io",
+    "nextjs",
+    "shell",
+    "browser-terminal"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^25.0.9",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "express": "^4.22.1",
+    "next": "^16.1.4",
+    "node-pty": "^1.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "typescript": "^5.9.3"
+  }
+}
