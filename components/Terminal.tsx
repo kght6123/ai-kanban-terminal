@@ -62,7 +62,10 @@ export default function Terminal() {
 
     // Connect to Socket.IO server
     const socket = io({
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     socketRef.current = socket;
@@ -77,6 +80,17 @@ export default function Terminal() {
         cols: xterm.cols,
         rows: xterm.rows
       });
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket.IO connection error:', error);
+      xterm.writeln('\r\nConnection error. Retrying...');
+      setSrAnnouncement('Connection error. Retrying...');
+    });
+
+    socket.on('reconnect_failed', () => {
+      xterm.writeln('\r\nFailed to reconnect to server');
+      setSrAnnouncement('Failed to reconnect to server');
     });
 
     socket.on('terminal-ready', () => {
@@ -110,8 +124,8 @@ export default function Terminal() {
 
     // Handle window resize
     const handleResize = () => {
-      if (fitAddon && socket.connected) {
-        fitAddon.fit();
+      if (fitAddonRef.current && socket.connected) {
+        fitAddonRef.current.fit();
         socket.emit('terminal-resize', {
           cols: xterm.cols,
           rows: xterm.rows

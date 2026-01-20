@@ -40,6 +40,9 @@ app.prepare().then(() => {
       const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
       
       // Create pseudo-terminal
+      // NOTE: Uses HOME directory as working directory for development.
+      // For production or sandboxed environments, consider using a specific
+      // restricted directory: cwd: path.join(process.cwd(), 'workspace')
       const ptyProcess = pty.spawn(shell, [], {
         name: 'xterm-color',
         cols: cols || 80,
