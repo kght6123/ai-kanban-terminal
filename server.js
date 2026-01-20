@@ -6,12 +6,15 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const pty = require('node-pty');
 const os = require('os');
+const path = require('path');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
 const port = parseInt(process.env.PORT || '3000', 10);
 
-const app = next({ dev, hostname, port });
+// Use __dirname to ensure Next.js finds the pages directory
+// even when the script is run via npx from a different directory
+const app = next({ dev, hostname, port, dir: __dirname });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
