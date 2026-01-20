@@ -1,6 +1,6 @@
 # AI Kanban Terminal
 
-A browser-based terminal with bidirectional shell communication using Next.js, node-pty, xterm.js, and Socket.IO.
+A browser-based terminal with bidirectional shell communication using Vite, Express, node-pty, xterm.js, and Socket.IO.
 
 ## Features
 
@@ -31,12 +31,17 @@ cd ai-kanban-terminal
 npm install
 ```
 
-3. Start the development server:
+3. Build the frontend:
 ```bash
-npm run dev
+npm run build
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+4. Start the server:
+```bash
+npm start
+```
+
+5. Open your browser and navigate to `http://localhost:3000`
 
 ## Usage
 
@@ -57,8 +62,9 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 
 ## Technology Stack
 
-- **Next.js**: React framework for the web application
-- **Express**: Custom server for HTTP requests
+- **Vite**: Fast build tool and dev server
+- **React**: UI library for the web application
+- **Express**: HTTP server for serving static files
 - **Socket.IO**: Real-time bidirectional communication
 - **node-pty**: Pseudo terminal for spawning shells
 - **xterm.js**: Terminal emulator in the browser
@@ -66,9 +72,9 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
+- `npm run dev` - Start Vite development server (frontend only)
+- `npm run build` - Build production bundle with Vite
+- `npm start` - Start Express server (requires built files in dist/)
 
 ## License
 
