@@ -38,17 +38,23 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $COMMIT_MSG"
           
-          # Check if this is a PR merge commit
+          # Check if this is a PR merge commit (handles merge, squash, and rebase)
+          # Pattern matches: "Merge pull request #123", "name (#123)", or looks for PR number
+          PR_NUMBER=""
           if echo "$COMMIT_MSG" | grep -qE "^Merge pull request #[0-9]+"; then
-            # Extract PR number
             PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE "#[0-9]+" | head -1 | tr -d '#')
+          elif echo "$COMMIT_MSG" | grep -qE "\(#[0-9]+\)"; then
+            PR_NUMBER=$(echo "$COMMIT_MSG" | grep -oE "#[0-9]+" | head -1 | tr -d '#')
+          fi
+          
+          if [ -n "$PR_NUMBER" ]; then
             echo "PR number: $PR_NUMBER"
             
             # Check if PR has a milestone
-            MILESTONE=$(gh pr view $PR_NUMBER --json milestone --jq '.milestone.title')
+            MILESTONE=$(gh pr view $PR_NUMBER --json milestone --jq '.milestone.title' 2>/dev/null || echo "")
             echo "Milestone: $MILESTONE"
             
-            if [ -n "$MILESTONE" ] && [ "$MILESTONE" != "null" ]; then
+            if [ -n "$MILESTONE" ] && [ "$MILESTONE" != "null" ] && [ "$MILESTONE" != "" ]; then
               echo "bump_type=major" >> $GITHUB_OUTPUT
               echo "Version bump: MAJOR (PR with milestone)"
             else
@@ -95,9 +101,12 @@ jobs:
       
       - name: Commit version update
         run: |
-          git add package.json package-lock.json
+          # Add package.json and package-lock.json if it exists
+          git add package.json
+          if [ -f package-lock.json ]; then
+            git add package-lock.json
+          fi
           git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new_version }}"
-          git push
       
       - name: Create Release Tag
         env:
@@ -106,9 +115,11 @@ jobs:
           NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
           TAG_NAME="v$NEW_VERSION"
           
-          # Create and push tag
+          # Create tag before pushing to avoid race conditions
           git tag -a $TAG_NAME -m "Release $TAG_NAME"
-          git push origin $TAG_NAME
+          
+          # Push both commit and tag together
+          git push origin HEAD:main --follow-tags
           
           # Create GitHub release
           gh release create $TAG_NAME \
