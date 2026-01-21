@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const pty = require('node-pty');
@@ -24,7 +25,6 @@ const io = new Server(httpServer, {
 
 // Serve static files from dist directory
 const distPath = path.join(__dirname, 'dist');
-const fs = require('fs');
 
 // Check if dist directory exists
 if (!fs.existsSync(distPath)) {
