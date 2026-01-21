@@ -48,7 +48,13 @@ io.on('connection', (socket) => {
     
     try {
       // Determine shell based on OS
-      const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+      let shell;
+      if (os.platform() === 'win32') {
+        shell = process.env.COMSPEC || 'cmd.exe';
+      } else {
+        // Use SHELL environment variable (user's default shell) or fallback to common shells
+        shell = process.env.SHELL || '/bin/sh';
+      }
       
       // Create pseudo-terminal
       // NOTE: Uses HOME directory as working directory for development.
