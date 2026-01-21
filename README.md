@@ -14,6 +14,14 @@ A browser-based terminal with bidirectional shell communication using Vite, Expr
 
 ### Using npx (Recommended)
 
+Once published to npm:
+
+```bash
+npx ai-kanban-terminal
+```
+
+Or from GitHub directly:
+
 ```bash
 npx github:kght6123/ai-kanban-terminal
 ```
@@ -91,6 +99,21 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 - `npm run build` - Build production bundle with Vite
 - `npm start` - Start Express server on port 3000 (serves built files from dist/)
 - `npm run preview` - Preview production build locally
+
+## Publishing to npm
+
+This package is configured for automatic deployment to npm. See [NPM_DEPLOY_GUIDE.md](NPM_DEPLOY_GUIDE.md) for detailed instructions in Japanese on:
+
+- Setting up npm credentials
+- Configuring GitHub Actions
+- Creating releases
+- Troubleshooting
+
+### Quick Release Steps
+
+1. Update version in `package.json`
+2. Create a new release on GitHub with a tag (e.g., `v1.0.1`)
+3. The GitHub Actions workflow will automatically build and publish to npm
 
 ## License
 

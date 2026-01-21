@@ -12,8 +12,15 @@
     "build": "vite build",
     "start": "NODE_ENV=production node server.js",
     "postinstall": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "dist",
+    "server.js",
+    "package.json",
+    "README.md"
+  ],
   "keywords": [
     "terminal",
     "xterm",

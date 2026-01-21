@@ -1,0 +1,29 @@
+# Development files
+.github
+.git
+.gitignore
+.DS_Store
+
+# Source files (not needed in published package)
+src
+vite.config.ts
+tsconfig.json
+tsconfig.node.json
+
+# Development dependencies
+node_modules
+*.local
+
+# Test files
+coverage
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Documentation files
+.env*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
