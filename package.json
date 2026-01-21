@@ -31,8 +31,12 @@
     "shell",
     "browser-terminal"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "kght6123",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kght6123/ai-kanban-terminal"
+  },
+  "license": "MIT",
   "dependencies": {
     "express": "^4.22.1",
     "node-pty": "^1.1.0",
