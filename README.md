@@ -20,6 +20,19 @@ Once published to npm:
 npx ai-kanban-terminal
 ```
 
+The server will start and display:
+```
+✓ ai-kanban-terminal is ready!
+
+  Open your browser and navigate to:
+
+  http://localhost:3000
+
+  Press Ctrl+C to stop the server
+```
+
+Then open your browser to `http://localhost:3000` to access the terminal.
+
 Or from GitHub directly:
 
 ```bash
@@ -92,6 +105,57 @@ Once the application starts, you'll see a terminal interface in your browser. Yo
 - **node-pty**: Pseudo terminal for spawning shells
 - **xterm.js**: Terminal emulator in the browser
 - **@xterm/addon-fit**: Automatic terminal resizing
+
+## Troubleshooting
+
+### Nothing happens when running `npx ai-kanban-terminal`
+
+If the command completes but nothing happens:
+
+1. **Check if the server started**: Look for the success message:
+   ```
+   ✓ ai-kanban-terminal is ready!
+   ```
+   
+2. **Manually open your browser**: Navigate to `http://localhost:3000`
+
+3. **Check if port is in use**: If you see "Port 3000 is already in use", try a different port:
+   ```bash
+   PORT=3001 npx ai-kanban-terminal
+   ```
+
+4. **Enable verbose logging**: Check npm installation logs:
+   ```bash
+   npm install -g ai-kanban-terminal --verbose
+   ai-kanban-terminal
+   ```
+
+### Server fails to start
+
+If you see an error about missing `dist` directory:
+
+1. The package may not have been built correctly during publishing
+2. Please report this issue at: https://github.com/kght6123/ai-kanban-terminal/issues
+
+### Terminal not displaying in browser
+
+1. Ensure JavaScript is enabled in your browser
+2. Check browser console for errors (F12 → Console tab)
+3. Verify that `http://localhost:3000` is accessible
+
+### Other issues
+
+For detailed logging when running via npx:
+
+```bash
+# Set DEBUG environment variable for more logs
+DEBUG=* npx ai-kanban-terminal
+
+# Or check Node.js logs
+NODE_DEBUG=* npx ai-kanban-terminal
+```
+
+If issues persist, please open an issue at: https://github.com/kght6123/ai-kanban-terminal/issues
 
 ## Scripts
 
