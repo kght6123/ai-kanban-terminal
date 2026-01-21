@@ -24,6 +24,17 @@ const io = new Server(httpServer, {
 
 // Serve static files from dist directory
 const distPath = path.join(__dirname, 'dist');
+const fs = require('fs');
+
+// Check if dist directory exists
+if (!fs.existsSync(distPath)) {
+  console.error('Error: dist directory not found at:', distPath);
+  console.error('This package may not have been built correctly.');
+  console.error('If you installed via npx, please report this issue at:');
+  console.error('https://github.com/kght6123/ai-kanban-terminal/issues');
+  process.exit(1);
+}
+
 expressApp.use(express.static(distPath));
 
 // Store terminal instances per socket
@@ -111,8 +122,17 @@ expressApp.get('*', (req, res) => {
 });
 
 httpServer.listen(port, () => {
-  console.log(`> ai-kanban-terminal ready on http://${hostname}:${port}`);
+  console.log(`\n✓ ai-kanban-terminal is ready!`);
+  console.log(`\n  Open your browser and navigate to:\n`);
+  console.log(`  \x1b[1m\x1b[36mhttp://${hostname}:${port}\x1b[0m\n`);
+  console.log(`  Press Ctrl+C to stop the server\n`);
 }).on('error', (err) => {
-  console.error('Server failed to start:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\nError: Port ${port} is already in use.`);
+    console.error(`Please try a different port by setting the PORT environment variable:`);
+    console.error(`  PORT=3001 npx ai-kanban-terminal\n`);
+  } else {
+    console.error('Server failed to start:', err);
+  }
   process.exit(1);
 });
