@@ -43,18 +43,51 @@ const terminals = new Map();
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
+  // Helper function to find an available shell
+  const findAvailableShell = () => {
+    if (os.platform() === 'win32') {
+      // Windows: Try common shells
+      const windowsShells = [
+        process.env.COMSPEC,
+        'cmd.exe',
+        'powershell.exe'
+      ];
+      
+      for (const shell of windowsShells) {
+        if (shell) return shell;
+      }
+      return 'cmd.exe'; // Final fallback
+    } else {
+      // Unix-like systems: Try to find an available shell
+      const unixShells = [
+        process.env.SHELL,
+        '/bin/bash',
+        '/usr/bin/bash',
+        '/bin/sh',
+        '/usr/bin/sh',
+        '/bin/zsh',
+        '/usr/bin/zsh'
+      ];
+      
+      for (const shell of unixShells) {
+        if (shell && fs.existsSync(shell)) {
+          return shell;
+        }
+      }
+      
+      // If no shell found, return /bin/sh as last resort
+      return '/bin/sh';
+    }
+  };
+
   socket.on('create-terminal', ({ cols, rows }) => {
     console.log('Creating terminal for socket:', socket.id);
     
     try {
       // Determine shell based on OS
-      let shell;
-      if (os.platform() === 'win32') {
-        shell = process.env.COMSPEC || 'cmd.exe';
-      } else {
-        // Use SHELL environment variable (user's default shell) or fallback to common shells
-        shell = process.env.SHELL || '/bin/sh';
-      }
+      const shell = findAvailableShell();
+      
+      console.log('Using shell:', shell);
       
       // Create pseudo-terminal
       // NOTE: Uses HOME directory as working directory for development.
@@ -86,7 +119,11 @@ io.on('connection', (socket) => {
       socket.emit('terminal-ready');
     } catch (err) {
       console.error('Failed to create terminal:', err);
-      socket.emit('terminal-error', { message: "Failed to create terminal" });
+      console.error('Shell attempted:', findAvailableShell());
+      console.error('Please ensure a compatible shell is installed on your system.');
+      socket.emit('terminal-error', { 
+        message: "Failed to create terminal. Please ensure a compatible shell (bash, sh, zsh) is installed on your system." 
+      });
     }
   });
 
