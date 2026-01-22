@@ -8,6 +8,46 @@ const { Server } = require('socket.io');
 const pty = require('node-pty');
 const os = require('os');
 
+// Fix node-pty spawn-helper permissions
+// The spawn-helper binary needs execute permissions to work properly
+// This is especially important for npx usage where permissions may not be preserved
+const fixNodePtyPermissions = () => {
+  try {
+    // Find the node-pty package root using package.json for reliability
+    const nodePtyPackageJson = require.resolve('node-pty/package.json');
+    const nodePtyPath = path.dirname(nodePtyPackageJson);
+    const prebuildsPath = path.join(nodePtyPath, 'prebuilds');
+    
+    if (!fs.existsSync(prebuildsPath)) {
+      return;
+    }
+    
+    const entries = fs.readdirSync(prebuildsPath, { withFileTypes: true });
+    const platforms = entries.filter(entry => entry.isDirectory()).map(entry => entry.name);
+    
+    for (const platform of platforms) {
+      const platformPath = path.join(prebuildsPath, platform);
+      const spawnHelperPath = path.join(platformPath, 'spawn-helper');
+      
+      if (fs.existsSync(spawnHelperPath)) {
+        try {
+          // Add execute permission (0o755 = rwxr-xr-x)
+          fs.chmodSync(spawnHelperPath, 0o755);
+        } catch (chmodErr) {
+          // Silently continue if chmod fails (e.g., on Windows or insufficient permissions)
+          // The error will be caught when attempting to spawn the terminal
+        }
+      }
+    }
+  } catch (err) {
+    // Silently continue if we can't fix permissions
+    // The error will be caught when attempting to spawn the terminal
+  }
+};
+
+// Apply the fix on startup
+fixNodePtyPermissions();
+
 const hostname = 'localhost';
 const port = parseInt(process.env.PORT || '3000', 10);
 
