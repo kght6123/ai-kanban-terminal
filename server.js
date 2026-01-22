@@ -49,14 +49,18 @@ io.on('connection', (socket) => {
       // Windows: Try common shells
       const windowsShells = [
         process.env.COMSPEC,
+        'C:\\Windows\\System32\\cmd.exe',
         'cmd.exe',
         'powershell.exe'
       ];
       
       for (const shell of windowsShells) {
-        if (shell) return shell;
+        if (shell && fs.existsSync(shell)) {
+          return shell;
+        }
       }
-      return 'cmd.exe'; // Final fallback
+      // If no shell found, try cmd.exe without path (let OS find it)
+      return 'cmd.exe';
     } else {
       // Unix-like systems: Try to find an available shell
       const unixShells = [
@@ -75,7 +79,8 @@ io.on('connection', (socket) => {
         }
       }
       
-      // If no shell found, return /bin/sh as last resort
+      // If no shell found, try /bin/sh anyway (most minimal fallback)
+      // This will fail with a clear error if it doesn't exist
       return '/bin/sh';
     }
   };
@@ -83,10 +88,10 @@ io.on('connection', (socket) => {
   socket.on('create-terminal', ({ cols, rows }) => {
     console.log('Creating terminal for socket:', socket.id);
     
+    // Determine shell based on OS
+    const shell = findAvailableShell();
+    
     try {
-      // Determine shell based on OS
-      const shell = findAvailableShell();
-      
       console.log('Using shell:', shell);
       
       // Create pseudo-terminal
@@ -119,7 +124,7 @@ io.on('connection', (socket) => {
       socket.emit('terminal-ready');
     } catch (err) {
       console.error('Failed to create terminal:', err);
-      console.error('Shell attempted:', findAvailableShell());
+      console.error('Shell attempted:', shell);
       console.error('Please ensure a compatible shell is installed on your system.');
       socket.emit('terminal-error', { 
         message: "Failed to create terminal. Please ensure a compatible shell (bash, sh, zsh) is installed on your system." 
