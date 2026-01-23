@@ -112,7 +112,8 @@ export default function TerminalPane({ socket, terminalId }: TerminalPaneProps) 
       }
     });
 
-    // Handle window resize
+    // Handle window resize with throttling
+    let resizeTimeout: NodeJS.Timeout | null = null;
     const handleResize = () => {
       if (fitAddonRef.current && socket.connected) {
         fitAddonRef.current.fit();
@@ -124,26 +125,37 @@ export default function TerminalPane({ socket, terminalId }: TerminalPaneProps) 
       }
     };
 
-    // Initial fit after mount
-    setTimeout(() => handleResize(), 100);
+    // Throttled resize handler to prevent excessive calls
+    const throttledResize = () => {
+      if (resizeTimeout) return;
+      resizeTimeout = setTimeout(() => {
+        handleResize();
+        resizeTimeout = null;
+      }, 100);
+    };
 
     // Use ResizeObserver for better resize detection
     const resizeObserver = new ResizeObserver(() => {
-      handleResize();
+      throttledResize();
     });
 
     if (terminalRef.current) {
       resizeObserver.observe(terminalRef.current);
+      // Initial fit using ResizeObserver callback
+      throttledResize();
     }
 
     // Cleanup
     return () => {
-      resizeObserver.disconnect();
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
       socket.off('terminal-ready', handleTerminalReady);
       socket.off('terminal-output', handleTerminalOutput);
       socket.off('terminal-exit', handleTerminalExit);
       socket.emit('close-terminal', { terminalId });
       xterm.dispose();
+      resizeObserver.disconnect();
     };
   }, [socket, terminalId]);
 
