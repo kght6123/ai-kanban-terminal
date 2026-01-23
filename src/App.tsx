@@ -4,7 +4,8 @@ import {
   MosaicWindow, 
   MosaicNode,
   MosaicBranch,
-  MosaicWindowContext
+  MosaicWindowContext,
+  createBalancedTreeFromLeaves
 } from 'react-mosaic-component';
 import { io, Socket } from 'socket.io-client';
 import TerminalPane from './components/TerminalPane';
@@ -13,28 +14,6 @@ import TerminalPane from './components/TerminalPane';
 import 'react-mosaic-component/react-mosaic-component.css';
 
 type ViewId = string;
-
-// Custom toolbar controls for split buttons
-const ToolbarControls = ({ mosaicWindowActions }: { mosaicWindowActions: any }) => {
-  return (
-    <div className="mosaic-controls">
-      <button
-        className="mosaic-control-button"
-        title="Split Horizontally"
-        onClick={() => mosaicWindowActions.split()}
-      >
-        ⬌
-      </button>
-      <button
-        className="mosaic-control-button"
-        title="Split Vertically"
-        onClick={() => mosaicWindowActions.split()}
-      >
-        ⬍
-      </button>
-    </div>
-  );
-};
 
 export default function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -87,20 +66,10 @@ export default function App() {
         path={path}
         title={`Terminal ${id}`}
         createNode={createNode}
-        renderToolbar={(props) => (
-          <MosaicWindowContext.Consumer>
-            {({ mosaicWindowActions }) => (
-              <div className="mosaic-window-toolbar">
-                <div className="mosaic-window-title">{props?.title}</div>
-                <div className="mosaic-window-controls">
-                  <ToolbarControls mosaicWindowActions={mosaicWindowActions} />
-                </div>
-              </div>
-            )}
-          </MosaicWindowContext.Consumer>
-        )}
       >
-        <TerminalPane socket={socket} terminalId={id} />
+        <div style={{ height: '100%', width: '100%' }}>
+          <TerminalPane socket={socket} terminalId={id} />
+        </div>
       </MosaicWindow>
     );
   };
