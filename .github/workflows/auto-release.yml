@@ -95,13 +95,23 @@ jobs:
           fi
           
           # Check for existing releases and increment until finding a unique version
-          while true; do
+          MAX_ATTEMPTS=100
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
             TAG_NAME="v$NEW_VERSION"
             
             # Check if release exists (exit code 0 if exists, non-zero if not)
-            if gh release view $TAG_NAME >/dev/null 2>&1; then
+            # The gh release view command returns:
+            # - 0 if release exists
+            # - 1 if release not found
+            # - Other codes for errors (network, auth, etc.)
+            gh release view $TAG_NAME >/dev/null 2>&1
+            EXIT_CODE=$?
+            
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "Release $TAG_NAME already exists, incrementing..."
+              ATTEMPT=$((ATTEMPT + 1))
               
               # Increment based on the original bump type
               if [ "$BUMP_TYPE" == "major" ]; then
@@ -114,11 +124,20 @@ jobs:
               else
                 PATCH=$((PATCH + 1))
               fi
-            else
+            elif [ $EXIT_CODE -eq 1 ]; then
               echo "Version $NEW_VERSION is available"
               break
+            else
+              echo "Error checking release $TAG_NAME (exit code: $EXIT_CODE)"
+              echo "This may be a network or authentication issue"
+              exit $EXIT_CODE
             fi
           done
+          
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "ERROR: Reached maximum attempts ($MAX_ATTEMPTS) while searching for available version"
+            exit 1
+          fi
           
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
