@@ -94,6 +94,10 @@ io.on('connection', (socket) => {
     const socketTerminals = terminals.get(socket.id);
     if (!socketTerminals) {
       console.error('Socket terminals map not found for:', socket.id);
+      socket.emit('terminal-error', { 
+        terminalId,
+        message: "Failed to create terminal. Socket not properly initialized." 
+      });
       return;
     }
     
