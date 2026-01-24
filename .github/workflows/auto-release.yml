@@ -83,18 +83,29 @@ jobs:
           
           # Bump version based on type
           BUMP_TYPE="${{ steps.version_type.outputs.bump_type }}"
-          if [ "$BUMP_TYPE" == "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "$BUMP_TYPE" == "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
+          
+          # Function to increment version based on bump type
+          # This logic is reused when searching for an available version
+          increment_version() {
+            if [ "$BUMP_TYPE" == "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "$BUMP_TYPE" == "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+          }
+          
+          # Initial version bump
+          increment_version
           
           # Check for existing releases and increment until finding a unique version
+          # MAX_ATTEMPTS prevents infinite loops in case of unexpected issues
+          # 100 attempts should be more than sufficient for normal use cases
+          # (e.g., even if 99 consecutive versions exist, we'll find the 100th)
           MAX_ATTEMPTS=100
           ATTEMPT=0
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
@@ -112,18 +123,7 @@ jobs:
             if [ $EXIT_CODE -eq 0 ]; then
               echo "Release $TAG_NAME already exists, incrementing..."
               ATTEMPT=$((ATTEMPT + 1))
-              
-              # Increment based on the original bump type
-              if [ "$BUMP_TYPE" == "major" ]; then
-                MAJOR=$((MAJOR + 1))
-                MINOR=0
-                PATCH=0
-              elif [ "$BUMP_TYPE" == "minor" ]; then
-                MINOR=$((MINOR + 1))
-                PATCH=0
-              else
-                PATCH=$((PATCH + 1))
-              fi
+              increment_version
             elif [ $EXIT_CODE -eq 1 ]; then
               echo "Version $NEW_VERSION is available"
               break
