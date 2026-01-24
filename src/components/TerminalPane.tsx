@@ -17,6 +17,7 @@ export default function TerminalPane({ paneId, onSplit, onClose }: TerminalPaneP
   const xtermRef = useRef<XTerm | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [showControls, setShowControls] = useState(false);
 
@@ -123,10 +124,11 @@ export default function TerminalPane({ paneId, onSplit, onClose }: TerminalPaneP
     });
 
     // Handle window resize with debounce
-    let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(() => {
         if (fitAddonRef.current && socket.connected) {
           fitAddonRef.current.fit();
           socket.emit('terminal-resize', {
@@ -147,7 +149,9 @@ export default function TerminalPane({ paneId, onSplit, onClose }: TerminalPaneP
     // Cleanup
     return () => {
       resizeObserver.disconnect();
-      clearTimeout(resizeTimeout);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
       xterm.dispose();
       socket.emit('close-terminal', { terminalId: paneId });
       socket.disconnect();

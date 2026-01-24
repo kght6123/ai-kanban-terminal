@@ -39,7 +39,7 @@ export default function TiledLayout() {
   // Split a pane in the given direction
   const splitPane = useCallback((paneId: PaneId, direction: Direction) => {
     setLayout((prevLayout) => {
-      const newLayout = JSON.parse(JSON.stringify(prevLayout)) as Layout;
+      const newLayout = structuredClone(prevLayout) as Layout;
       
       function findAndSplit(node: Layout): boolean {
         if (!isSplit(node)) {
@@ -96,7 +96,7 @@ export default function TiledLayout() {
   // Close a pane
   const closePane = useCallback((paneId: PaneId) => {
     setLayout((prevLayout) => {
-      const newLayout = JSON.parse(JSON.stringify(prevLayout)) as Layout;
+      const newLayout = structuredClone(prevLayout) as Layout;
 
       function findAndRemove(node: Layout, parent?: Split, indexInParent?: number): Layout | null {
         if (!isSplit(node)) {
