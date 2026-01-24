@@ -132,6 +132,7 @@ jobs:
               echo "Release $TAG_NAME already exists, incrementing..."
               ATTEMPT=$((ATTEMPT + 1))
               increment_version
+              continue
             elif [ $EXIT_CODE -eq 1 ]; then
               echo "Version $NEW_VERSION is available"
               break
