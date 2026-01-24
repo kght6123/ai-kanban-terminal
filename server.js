@@ -43,53 +43,11 @@ const terminals = new Map();
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
-  // Helper function to find an available shell
-  const findAvailableShell = () => {
-    if (os.platform() === 'win32') {
-      // Windows: Try common shells
-      const windowsShells = [
-        process.env.COMSPEC,
-        'C:\\Windows\\System32\\cmd.exe',
-        'cmd.exe',
-        'powershell.exe'
-      ];
-      
-      for (const shell of windowsShells) {
-        if (shell && fs.existsSync(shell)) {
-          return shell;
-        }
-      }
-      // If no shell found, try cmd.exe without path (let OS find it)
-      return 'cmd.exe';
-    } else {
-      // Unix-like systems: Try to find an available shell
-      const unixShells = [
-        process.env.SHELL,
-        '/bin/bash',
-        '/usr/bin/bash',
-        '/bin/sh',
-        '/usr/bin/sh',
-        '/bin/zsh',
-        '/usr/bin/zsh'
-      ];
-      
-      for (const shell of unixShells) {
-        if (shell && fs.existsSync(shell)) {
-          return shell;
-        }
-      }
-      
-      // If no shell found, try /bin/sh anyway (most minimal fallback)
-      // This will fail with a clear error if it doesn't exist
-      return '/bin/sh';
-    }
-  };
-
   socket.on('create-terminal', ({ cols, rows }) => {
     console.log('Creating terminal for socket:', socket.id);
     
     // Determine shell based on OS
-    const shell = findAvailableShell();
+    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
     
     try {
       console.log('Using shell:', shell);
