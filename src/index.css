@@ -5,38 +5,34 @@
 }
 
 html,
-body {
+body,
+#root {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
     Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-main {
+/* App Container */
+.app-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-/* Terminal Container */
-.terminal-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
   background: #1e1e1e;
   color: #d4d4d4;
 }
 
-/* Terminal Header */
-.terminal-header {
+/* App Header */
+.app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
   background: #252526;
   border-bottom: 1px solid #3e3e42;
+  z-index: 100;
 }
 
-.terminal-header h1 {
+.app-header h1 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #cccccc;
@@ -69,33 +65,145 @@ main {
   box-shadow: 0 0 8px rgba(205, 49, 49, 0.5);
 }
 
-/* Terminal Area */
-.terminal {
+/* Mosaic Container */
+.mosaic-container {
   flex: 1;
-  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Mosaic Controls */
+.mosaic-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.mosaic-control-button {
+  background: transparent;
+  border: 1px solid #3e3e42;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.mosaic-control-button:hover {
+  background: #3e3e42;
+}
+
+.mosaic-control-button:active {
+  background: #505050;
+}
+
+/* Override mosaic styles to match our theme */
+.mosaic-blueprint-theme.mosaic {
+  background: #1e1e1e;
+}
+
+.mosaic-blueprint-theme .mosaic-window {
+  box-shadow: none;
+  background: #1e1e1e;
+}
+
+.mosaic-blueprint-theme .mosaic-window-toolbar {
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+  height: 32px;
+  padding: 0 0.5rem;
+}
+
+.mosaic-blueprint-theme .mosaic-window-title {
+  color: #cccccc;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.mosaic-blueprint-theme .mosaic-window-controls {
+  color: #cccccc;
+}
+
+.mosaic-blueprint-theme .mosaic-window-body {
+  background: #1e1e1e;
+  padding: 0;
+}
+
+.mosaic-blueprint-theme .mosaic-split {
+  background: #3e3e42;
+}
+
+.mosaic-blueprint-theme .mosaic-split:hover {
+  background: #505050;
+}
+
+.mosaic-blueprint-theme .mosaic-preview {
+  background: rgba(0, 120, 212, 0.2);
+  border: 2px solid #0078d4;
+}
+
+/* Terminal Pane */
+.terminal-pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+}
+
+.terminal-pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.terminal-id {
+  font-size: 0.75rem;
+  color: #888888;
+  font-weight: 500;
+}
+
+.terminal-status {
+  font-size: 0.875rem;
+}
+
+.terminal-status.ready {
+  color: #0dbc79;
+}
+
+.terminal-status.loading {
+  color: #888888;
+}
+
+/* Terminal Content */
+.terminal-content {
+  flex: 1;
+  padding: 0.5rem;
   overflow: hidden;
   /* WCAG2.2: Ensure keyboard focus is visible */
   outline: none;
 }
 
-.terminal:focus {
+.terminal-content:focus {
   /* WCAG2.2: Visible focus indicator with sufficient contrast */
   box-shadow: inset 0 0 0 2px #0078d4;
 }
 
 /* Ensure xterm.js terminal fills the container */
-.terminal .xterm {
+.terminal-content .xterm {
   height: 100%;
   width: 100%;
 }
 
 /* WCAG2.2: High contrast mode support */
 @media (prefers-contrast: high) {
-  .terminal-container {
+  .app-container {
     border: 2px solid #ffffff;
   }
 
-  .terminal-header {
+  .app-header {
     border-bottom: 2px solid #ffffff;
   }
 
@@ -117,11 +225,11 @@ main {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .terminal-header {
+  .app-header {
     padding: 0.75rem 1rem;
   }
 
-  .terminal-header h1 {
+  .app-header h1 {
     font-size: 1rem;
   }
 
@@ -129,8 +237,8 @@ main {
     font-size: 0.75rem;
   }
 
-  .terminal {
-    padding: 0.5rem;
+  .terminal-content {
+    padding: 0.25rem;
   }
 }
 
@@ -145,4 +253,51 @@ main {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* Legacy styles for backward compatibility */
+main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.terminal-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #cccccc;
+  margin: 0;
+}
+
+.terminal {
+  flex: 1;
+  padding: 1rem;
+  overflow: hidden;
+  outline: none;
+}
+
+.terminal:focus {
+  box-shadow: inset 0 0 0 2px #0078d4;
+}
+
+.terminal .xterm {
+  height: 100%;
+  width: 100%;
 }
