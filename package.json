@@ -1,6 +1,6 @@
 {
   "name": "ai-kanban-terminal",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Browser-based terminal with bidirectional shell using Vite, Express, node-pty, xterm.js, and Socket.IO",
   "main": "server.js",
   "type": "commonjs",
