@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
     }
     
     // Determine shell based on OS
-    const shell = findAvailableShell();
+    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
     
     try {
       console.log('Using shell:', shell);
