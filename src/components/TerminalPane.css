@@ -1,0 +1,122 @@
+.terminal-pane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #1e1e1e;
+  overflow: hidden;
+}
+
+/* Pane Controls */
+.pane-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: rgba(37, 37, 38, 0.95);
+  border-bottom: 1px solid #3e3e42;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.pane-controls.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.pane-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #cccccc;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background-color: #0dbc79;
+}
+
+.status-dot.disconnected {
+  background-color: #cd3131;
+}
+
+.pane-id {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.pane-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pane-buttons button {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid #3e3e42;
+  color: #cccccc;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.pane-buttons button:hover {
+  background: #3e3e42;
+  border-color: #007acc;
+  color: #ffffff;
+}
+
+.pane-buttons button.close-btn:hover {
+  background: #cd3131;
+  border-color: #cd3131;
+  color: #ffffff;
+}
+
+.pane-buttons button:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+/* Terminal Area */
+.terminal-pane .terminal {
+  flex: 1;
+  padding: 0.5rem;
+  overflow: hidden;
+  outline: none;
+}
+
+.terminal-pane .terminal:focus {
+  box-shadow: inset 0 0 0 1px #007acc;
+}
+
+/* Ensure xterm.js terminal fills the container */
+.terminal-pane .xterm {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pane-controls {
+    transition: none;
+  }
+  
+  .pane-buttons button {
+    transition: none;
+  }
+}

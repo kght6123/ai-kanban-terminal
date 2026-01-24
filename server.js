@@ -37,11 +37,14 @@ if (!fs.existsSync(distPath)) {
 
 expressApp.use(express.static(distPath));
 
-// Store terminal instances per socket
-const terminals = new Map();
+// Store terminal instances by socket and terminal ID
+const terminals = new Map(); // Map<socketId, Map<terminalId, ptyProcess>>
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
+  
+  // Initialize terminal map for this socket
+  terminals.set(socket.id, new Map());
 
   // Helper function to find an available shell
   const findAvailableShell = () => {
@@ -85,8 +88,14 @@ io.on('connection', (socket) => {
     }
   };
 
-  socket.on('create-terminal', ({ cols, rows }) => {
-    console.log('Creating terminal for socket:', socket.id);
+  socket.on('create-terminal', ({ cols, rows, terminalId }) => {
+    console.log('Creating terminal:', terminalId, 'for socket:', socket.id);
+    
+    const socketTerminals = terminals.get(socket.id);
+    if (!socketTerminals) {
+      console.error('Socket terminals map not found for:', socket.id);
+      return;
+    }
     
     // Determine shell based on OS
     const shell = findAvailableShell();
@@ -107,53 +116,77 @@ io.on('connection', (socket) => {
       });
 
       // Store terminal instance
-      terminals.set(socket.id, ptyProcess);
+      socketTerminals.set(terminalId, ptyProcess);
 
       // Send data from terminal to client
       ptyProcess.onData((data) => {
-        socket.emit('terminal-output', data);
+        socket.emit('terminal-output', { terminalId, data });
       });
 
       // Handle terminal exit
       ptyProcess.onExit(({ exitCode, signal }) => {
-        console.log(`Terminal exited for ${socket.id}:`, exitCode, signal);
-        terminals.delete(socket.id);
-        socket.emit('terminal-exit', { exitCode, signal });
+        console.log(`Terminal ${terminalId} exited for ${socket.id}:`, exitCode, signal);
+        socketTerminals.delete(terminalId);
+        socket.emit('terminal-exit', { terminalId, exitCode, signal });
       });
 
-      socket.emit('terminal-ready');
+      socket.emit('terminal-ready', { terminalId });
     } catch (err) {
       console.error('Failed to create terminal:', err);
       console.error('Shell attempted:', shell);
       console.error('Please ensure a compatible shell is installed on your system.');
       socket.emit('terminal-error', { 
+        terminalId,
         message: "Failed to create terminal. Please ensure a compatible shell (bash, sh, zsh) is installed on your system." 
       });
     }
   });
 
   // Handle input from client
-  socket.on('terminal-input', (data) => {
-    const terminal = terminals.get(socket.id);
+  socket.on('terminal-input', ({ terminalId, data }) => {
+    const socketTerminals = terminals.get(socket.id);
+    if (!socketTerminals) return;
+    
+    const terminal = socketTerminals.get(terminalId);
     if (terminal) {
       terminal.write(data);
     }
   });
 
   // Handle terminal resize
-  socket.on('terminal-resize', ({ cols, rows }) => {
-    const terminal = terminals.get(socket.id);
+  socket.on('terminal-resize', ({ terminalId, cols, rows }) => {
+    const socketTerminals = terminals.get(socket.id);
+    if (!socketTerminals) return;
+    
+    const terminal = socketTerminals.get(terminalId);
     if (terminal) {
       terminal.resize(cols, rows);
+    }
+  });
+
+  // Handle terminal close
+  socket.on('close-terminal', ({ terminalId }) => {
+    const socketTerminals = terminals.get(socket.id);
+    if (!socketTerminals) return;
+    
+    const terminal = socketTerminals.get(terminalId);
+    if (terminal) {
+      console.log('Closing terminal:', terminalId, 'for socket:', socket.id);
+      terminal.kill();
+      socketTerminals.delete(terminalId);
     }
   });
 
   // Clean up on disconnect
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    const terminal = terminals.get(socket.id);
-    if (terminal) {
-      terminal.kill();
+    const socketTerminals = terminals.get(socket.id);
+    if (socketTerminals) {
+      // Kill all terminals for this socket
+      for (const [terminalId, terminal] of socketTerminals.entries()) {
+        console.log('Killing terminal:', terminalId);
+        terminal.kill();
+      }
       terminals.delete(socket.id);
     }
   });
