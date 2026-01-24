@@ -84,23 +84,17 @@ jobs:
           # Bump version based on type
           BUMP_TYPE="${{ steps.version_type.outputs.bump_type }}"
           
-          # Function to increment version based on bump type
-          # This logic is reused when searching for an available version
-          increment_version() {
-            if [ "$BUMP_TYPE" == "major" ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            elif [ "$BUMP_TYPE" == "minor" ]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-          }
-          
           # Initial version bump
-          increment_version
+          if [ "$BUMP_TYPE" == "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$BUMP_TYPE" == "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
           
           # Check for existing releases and increment until finding a unique version
           # MAX_ATTEMPTS prevents infinite loops in case of unexpected issues
@@ -116,7 +110,8 @@ jobs:
             if git rev-parse --verify --quiet "$TAG_NAME" >/dev/null; then
               echo "Tag $TAG_NAME already exists, incrementing..."
               ATTEMPT=$((ATTEMPT + 1))
-              increment_version
+              # Increment patch version for retry
+              PATCH=$((PATCH + 1))
               continue
             fi
             
@@ -131,7 +126,8 @@ jobs:
             if [ $EXIT_CODE -eq 0 ]; then
               echo "Release $TAG_NAME already exists, incrementing..."
               ATTEMPT=$((ATTEMPT + 1))
-              increment_version
+              # Increment patch version for retry
+              PATCH=$((PATCH + 1))
               continue
             elif [ $EXIT_CODE -eq 1 ]; then
               echo "Version $NEW_VERSION is available"
