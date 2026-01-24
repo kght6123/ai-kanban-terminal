@@ -68,6 +68,8 @@ jobs:
       
       - name: Bump version
         id: bump_version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Read current version
           CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -81,18 +83,71 @@ jobs:
           
           # Bump version based on type
           BUMP_TYPE="${{ steps.version_type.outputs.bump_type }}"
-          if [ "$BUMP_TYPE" == "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "$BUMP_TYPE" == "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
+          
+          # Function to increment version based on bump type
+          # This logic is reused when searching for an available version
+          increment_version() {
+            if [ "$BUMP_TYPE" == "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "$BUMP_TYPE" == "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+          }
+          
+          # Initial version bump
+          increment_version
+          
+          # Check for existing releases and increment until finding a unique version
+          # MAX_ATTEMPTS prevents infinite loops in case of unexpected issues
+          # 100 attempts should be more than sufficient for normal use cases
+          # (e.g., even if 99 consecutive versions exist, we'll find the 100th)
+          MAX_ATTEMPTS=100
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+            TAG_NAME="v$NEW_VERSION"
+            
+            # Check if tag already exists (prevents tag creation failure)
+            if git rev-parse --verify --quiet "$TAG_NAME" >/dev/null; then
+              echo "Tag $TAG_NAME already exists, incrementing..."
+              ATTEMPT=$((ATTEMPT + 1))
+              increment_version
+              continue
+            fi
+            
+            # Check if release exists (exit code 0 if exists, non-zero if not)
+            # The gh release view command returns:
+            # - 0 if release exists
+            # - 1 if release not found
+            # - Other codes for errors (network, auth, etc.)
+            gh release view $TAG_NAME >/dev/null 2>&1
+            EXIT_CODE=$?
+            
+            if [ $EXIT_CODE -eq 0 ]; then
+              echo "Release $TAG_NAME already exists, incrementing..."
+              ATTEMPT=$((ATTEMPT + 1))
+              increment_version
+              continue
+            elif [ $EXIT_CODE -eq 1 ]; then
+              echo "Version $NEW_VERSION is available"
+              break
+            else
+              echo "Error checking release $TAG_NAME (exit code: $EXIT_CODE)"
+              echo "This may be a network or authentication issue"
+              exit $EXIT_CODE
+            fi
+          done
+          
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "ERROR: Reached maximum attempts ($MAX_ATTEMPTS) while searching for available version"
+            exit 1
           fi
           
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           
