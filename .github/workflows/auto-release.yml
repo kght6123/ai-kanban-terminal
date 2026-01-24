@@ -68,6 +68,8 @@ jobs:
       
       - name: Bump version
         id: bump_version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Read current version
           CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -92,7 +94,32 @@ jobs:
             PATCH=$((PATCH + 1))
           fi
           
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          # Check for existing releases and increment until finding a unique version
+          while true; do
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+            TAG_NAME="v$NEW_VERSION"
+            
+            # Check if release exists (exit code 0 if exists, non-zero if not)
+            if gh release view $TAG_NAME >/dev/null 2>&1; then
+              echo "Release $TAG_NAME already exists, incrementing..."
+              
+              # Increment based on the original bump type
+              if [ "$BUMP_TYPE" == "major" ]; then
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+              elif [ "$BUMP_TYPE" == "minor" ]; then
+                MINOR=$((MINOR + 1))
+                PATCH=0
+              else
+                PATCH=$((PATCH + 1))
+              fi
+            else
+              echo "Version $NEW_VERSION is available"
+              break
+            fi
+          done
+          
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           
