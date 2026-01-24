@@ -113,7 +113,7 @@ jobs:
             TAG_NAME="v$NEW_VERSION"
             
             # Check if tag already exists (prevents tag creation failure)
-            if git tag -l "$TAG_NAME" | grep -q "^$TAG_NAME$"; then
+            if git rev-parse --verify --quiet "$TAG_NAME" >/dev/null 2>&1; then
               echo "Tag $TAG_NAME already exists, incrementing..."
               ATTEMPT=$((ATTEMPT + 1))
               increment_version
