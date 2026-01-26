@@ -79,16 +79,19 @@ jobs:
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
           
-          # Bump version based on type
+          # Bump version based on type (following semantic versioning)
           BUMP_TYPE="${{ steps.version_type.outputs.bump_type }}"
           if [ "$BUMP_TYPE" == "major" ]; then
+            # Major bump: increment major, reset minor and patch to 0
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
           elif [ "$BUMP_TYPE" == "minor" ]; then
+            # Minor bump: increment minor, reset patch to 0
             MINOR=$((MINOR + 1))
             PATCH=0
           else
+            # Patch bump: only increment patch
             PATCH=$((PATCH + 1))
           fi
           
