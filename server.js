@@ -37,25 +37,19 @@ if (!fs.existsSync(distPath)) {
 
 expressApp.use(express.static(distPath));
 
-// Store terminal instances per socket
+// Store terminal instances: Map<socketId, Map<terminalId, ptyProcess>>
 const terminals = new Map();
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
+  terminals.set(socket.id, new Map());
 
-  socket.on('create-terminal', ({ cols, rows }) => {
-    console.log('Creating terminal for socket:', socket.id);
-    
-    // Determine shell based on OS
+  socket.on('create-terminal', ({ terminalId, cols, rows }) => {
+    console.log(`Creating terminal ${terminalId} for socket:`, socket.id);
+
     const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-    
+
     try {
-      console.log('Using shell:', shell);
-      
-      // Create pseudo-terminal
-      // NOTE: Uses HOME directory as working directory for development.
-      // For production or sandboxed environments, consider using a specific
-      // restricted directory: cwd: path.join(process.cwd(), 'workspace')
       const ptyProcess = pty.spawn(shell, [], {
         name: 'xterm-color',
         cols: cols || 80,
@@ -64,54 +58,50 @@ io.on('connection', (socket) => {
         env: process.env
       });
 
-      // Store terminal instance
-      terminals.set(socket.id, ptyProcess);
+      terminals.get(socket.id).set(terminalId, ptyProcess);
 
-      // Send data from terminal to client
       ptyProcess.onData((data) => {
-        socket.emit('terminal-output', data);
+        socket.emit('terminal-output', { terminalId, data });
       });
 
-      // Handle terminal exit
       ptyProcess.onExit(({ exitCode, signal }) => {
-        console.log(`Terminal exited for ${socket.id}:`, exitCode, signal);
-        terminals.delete(socket.id);
-        socket.emit('terminal-exit', { exitCode, signal });
+        console.log(`Terminal ${terminalId} exited for ${socket.id}:`, exitCode, signal);
+        terminals.get(socket.id)?.delete(terminalId);
+        socket.emit('terminal-exit', { terminalId, exitCode, signal });
       });
 
-      socket.emit('terminal-ready');
+      socket.emit('terminal-ready', { terminalId });
     } catch (err) {
-      console.error('Failed to create terminal:', err);
-      console.error('Shell attempted:', shell);
-      console.error('Please ensure a compatible shell is installed on your system.');
-      socket.emit('terminal-error', { 
-        message: "Failed to create terminal. Please ensure a compatible shell (bash, sh, zsh) is installed on your system." 
+      console.error(`Failed to create terminal ${terminalId}:`, err);
+      socket.emit('terminal-error', {
+        terminalId,
+        message: 'Failed to create terminal. Please ensure a compatible shell (bash, sh, zsh) is installed on your system.'
       });
     }
   });
 
-  // Handle input from client
-  socket.on('terminal-input', (data) => {
-    const terminal = terminals.get(socket.id);
-    if (terminal) {
-      terminal.write(data);
+  socket.on('terminal-input', ({ terminalId, data }) => {
+    terminals.get(socket.id)?.get(terminalId)?.write(data);
+  });
+
+  socket.on('terminal-resize', ({ terminalId, cols, rows }) => {
+    terminals.get(socket.id)?.get(terminalId)?.resize(cols, rows);
+  });
+
+  socket.on('close-terminal', ({ terminalId }) => {
+    const ptyProcess = terminals.get(socket.id)?.get(terminalId);
+    if (ptyProcess) {
+      ptyProcess.kill();
+      terminals.get(socket.id).delete(terminalId);
+      console.log(`Terminal ${terminalId} closed for socket:`, socket.id);
     }
   });
 
-  // Handle terminal resize
-  socket.on('terminal-resize', ({ cols, rows }) => {
-    const terminal = terminals.get(socket.id);
-    if (terminal) {
-      terminal.resize(cols, rows);
-    }
-  });
-
-  // Clean up on disconnect
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    const terminal = terminals.get(socket.id);
-    if (terminal) {
-      terminal.kill();
+    const socketTerminals = terminals.get(socket.id);
+    if (socketTerminals) {
+      socketTerminals.forEach((ptyProcess) => ptyProcess.kill());
       terminals.delete(socket.id);
     }
   });
